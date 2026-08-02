@@ -23,7 +23,6 @@ def page_scraper(url,wordlist):
         except requests.HTTPError:
             print("HTTP error occurred")
             break
-            
         
     return collection
 
@@ -38,6 +37,21 @@ def export(file_name, collection):
             writer.writerow([quote.text,author.text,word])
     file.close()
 
+
+def find_urls(url):
+    
+    page = requests.get(url)
+    soup = BeautifulSoup(page.text, "html.parser")
+
+    #print(soup.prettify())
+
+    for link in soup.find_all('a'):
+        print(link.get('href'))
+
+"""
 url = "https://quotes.toscrape.com/tag/"
 collection = page_scraper(url,["love","inspirational","life","humor","books","reading","not a tag","friendship","friends","truth","simile"])
 export("testdump.csv",collection)
+"""
+
+find_urls("https://www.clickersarchery.co.uk/products/category/recurve-limbs/")
