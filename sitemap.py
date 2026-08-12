@@ -1,16 +1,5 @@
 from bs4 import BeautifulSoup
 import requests
-import csv
-import heapq
-import time 
-import random
-import usp
-
-def find_sitemap_in_robots(robots):
-    for line in robots.splitlines():
-        if "Sitemap" in line:
-            return line[line.find("https"):]
-    return None
 
 def find_urls(url):
 
