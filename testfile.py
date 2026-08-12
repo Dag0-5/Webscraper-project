@@ -4,7 +4,8 @@ import csv
 import heapq
 import time 
 import random
-import urllib3
+import usp
+import sitemap
 
 def page_scraper(url,wordlist):
     collection = list()
@@ -143,24 +144,9 @@ def find_robots(url):
     #print(page.text)
     return page.text
 
-def find_disallow_list(robots):
+def find_allow_disallow_list(robots):
     disallow = list()
-    agent_found = False
-    for line in robots.splitlines():
-        if("User-agent" in line):
-            if "*" in line:
-                agent_found = True
-            else:
-                agent_found = False
-
-        if "Disallow" in line and agent_found:
-            disallow.append(line[line.find("/"):])
-
-    print(disallow)
-    return disallow
-
-def find_allow_list(robots):
-    sallow = list()
+    allow = list()
     agent_found = False
     for line in robots.splitlines():
         if("User-agent" in line):
@@ -170,17 +156,24 @@ def find_allow_list(robots):
                 agent_found = False
                 
         if "Allow" in line and agent_found:
-            sallow.append(line[line.find("/"):])
+            allow.append(line[line.find("/"):])
 
-    print(sallow)
-    return sallow
+        if "Disallow" in line and agent_found:
+            disallow.append(line[line.find("/"):])
+
+    print(allow)
+    print(disallow)
+
+    return (allow,disallow)
+
+
 """
 url = "https://quotes.toscrape.com/tag/"
 collection = page_scraper(url,["love","inspirational","life","humor","books","reading","not a tag","friendship","friends","truth","simile"])
 export("testdump.csv",collection)
 """
 
-print(find_urls("https://walesarchery.com"))
+#print(find_urls("https://walesarchery.com"))
 
 #multi_site_scan("Archery URLs.txt")
 
@@ -188,5 +181,12 @@ print(find_urls("https://walesarchery.com"))
 
 #print(find_next_page("https://www.quicksarchery.co.uk/bows/recurve-target-bows/"))
 
-find_disallow_list(find_robots("https://walesarchery.com"))
 #find_allow_list(find_robots("https://www.altservices.co.uk/"))
+
+#print(sitemap.find_sitemap_in_robots(find_robots("https://www.merlinarchery.co.uk/")))
+#sitemap.find_urls("https://merlinarchery.co.uk/sitemaps/sitemap.xml")
+temp = sitemap.find_sitemaps("https://merlinarchery.co.uk/sitemaps/sitemap.xml")
+
+for t in temp:
+    print(sitemap.find_urls(t))
+    break
