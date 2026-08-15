@@ -62,8 +62,18 @@ export("testdump.csv",collection)
 """temp = sitemap.find_sitemaps("https://merlinarchery.co.uk/sitemaps/sitemap.xml")
 
 for t in temp:
-    print(len(sitemap.find_urls(t)))
-    break
+    info = sitemap.find_urls(t)
+    url,title,image = info[0]
+    print(len(info))
+    print(url+"-[]-"+title+"-[]-"+image)
 """
 
-pages.find_price("https://www.quicksarchery.co.uk/bows/recurve-target-bows/Shocq-archery-triumph-carbon-foam-ILF-limbs-en")
+#pages.find_price("https://www.quicksarchery.co.uk/bows/recurve-target-bows/Shocq-archery-triumph-carbon-foam-ILF-limbs-en")
+
+#sitemap.find_images("https://www.merlinarchery.co.uk/sitemap-1-1.xml")
+
+
+info = sitemap.find_urls("https://www.merlinarchery.co.uk/sitemap-1-2.xml")
+url,title,image = info[0]
+print(len(info))
+print(url+"-[]-"+title+"-[]-"+image)
