@@ -72,8 +72,18 @@ for t in temp:
 
 #sitemap.find_images("https://www.merlinarchery.co.uk/sitemap-1-1.xml")
 
-
-info = sitemap.find_urls("https://www.merlinarchery.co.uk/sitemap-1-2.xml")
+"""
+info = sitemap.find_urls("https://www.merlinarchery.co.uk/sitemap-1-1.xml")
 url,title,image = info[0]
 print(len(info))
-print(url+"-[]-"+title+"-[]-"+image)
+#print(url+"-[]-"+title+"-[]-"+image)
+
+urls = list()
+for url,_,_ in info:
+    urls.append(url)
+
+hits = pages.check_from_word_list([("recurve",2),("recurve-limbs",10),("limb",5),("bow",5)],urls)
+print(len(hits))
+"""
+
+print(pages.find_next_page("https://www.quicksarchery.co.uk/bows/recurve-target-bows/"),"<>")

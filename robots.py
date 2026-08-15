@@ -7,10 +7,13 @@ def find_sitemap_in_robots(robots):
     return None
 
 def find_robots(url):
-    session = requests.session()
-    page = session.get(url+"/robots.txt")
-    #print(page.text)
-    return page.text
+    try:
+        session = requests.session()
+        page = session.get(url+"/robots.txt")
+        #print(page.text)
+        return page.text
+    except:
+        return None
 
 def find_allow_disallow_list(robots):
     disallow = list()

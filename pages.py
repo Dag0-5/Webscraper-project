@@ -60,45 +60,25 @@ def find_target_page(current_url,key_word,word_list,max_redirects,start_time,red
         if key_word in next_url:
             time.sleep(random.random()*0.1)
             return find_target_page(next_url,key_word,word_list,max_redirects,start_time,redirects+1)
-
-
-def get_next_page_query_type(url):
-    session = requests.session()
-    page = session.get(url)
-    print(page.history)#check
-    soup = BeautifulSoup(page.text, "html.parser")
-    
-    print(original_hash)
-    types = ["?page=","?p="]
-
-    for type in types:
-
-        new_url = url+type+"2"
-        print(new_url)
-        page = session.get(new_url)
-        print(page.history)#check
-        page = BeautifulSoup(page.text,"html.parser")
-        new_page_hash = page_hash(page)
-        print(new_page_hash)
-
-        if(new_page_hash != original_hash):
-            #return type
-            print("")
-
-    raise NotImplementedError
         
 def find_next_page(url):
     session = requests.session()
     page = session.get(url)
     soup = BeautifulSoup(page.text,"html.parser")
     url_list = find_urls(url)
-    next_pages = check_from_word_list([("next",5),("next-page",20),("page",3),("scroll",3)],url_list)
-    if len(next_pages)>0:
-        for next_page in next_pages:
-            if url not in next_page:
-                next_pages.remove(next_page)
-        
+    print("Good")
+    next_pages = check_from_word_list([("next",5),("next-page",20),("page",3),("scroll",3),("?p=",3),("?P=",3)],url_list)
+    print("better")
     print(next_pages)
+
+    if len(next_pages)>0:
+        for i in range(len(next_pages)-1,0,-1):
+            next_page = next_pages[i]
+            if ("http" in next_page[1] and url not in next_page[1]):
+                next_pages.remove(next_page)
+
+    return next_pages
+
 
 def find_price(url):
     
