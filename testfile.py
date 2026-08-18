@@ -87,5 +87,5 @@ print(len(hits))
 """
 
 #print(pages.find_next_page("https://www.quicksarchery.co.uk/bows/recurve-target-bows/"),"<>")
-pages.find_options("https://www.altservices.co.uk/products/kinetic-lancer-v2-riser")
+pages.find_options("https://walesarchery.com/collections/recurve-risers/products/hoyt-gmx3-grand-prix-riser")
 

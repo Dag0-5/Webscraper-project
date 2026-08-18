@@ -118,11 +118,11 @@ def find_options(url):
     current_length = 0
 
     wordlist = ["product-content","product-form","select","form-control"]
-    blacklist = ["cart","buy","add","basket","notify"] 
+    blacklist = ["cart","buy","add","basket","notify","country","Country"] 
 
     for phrase in wordlist:
         options_cluttered += soup.find_all(class_=re.compile(phrase))
-        #print(len(options_cluttered))
+        
         if len(options_cluttered) != current_length:
             successful.append(phrase)
             
@@ -131,36 +131,28 @@ def find_options(url):
                 for word in blacklist:
                     if word in option.text:
                         options_cluttered.remove(option)
-                        print("REMOVED ~~~~~",i)
             current_length = len(options_cluttered)
-            #print(current_length,"Current")
-            #print(options_cluttered)
-    
+            
     for phrase in successful:
         options+= get_option_text(phrase,options_cluttered)
-
-    #print(options)
-
-    for option in options:
-        print(option)
-
 
 def get_option_text(phrase,tag_list):
     new_list = list()
     if (phrase == "product-content"):
         for tag in tag_list:
-            new_list += tag.find_all("product-item-name")
+            new_list += tag.find_all(class_="product-item-name")
 
     elif (phrase == "product-form"):
         for tag in tag_list:
             new_list += tag.find_all("label")
 
-    elif (phrase == "thumb form-control" or phrase == "select"):
+    elif (phrase == "form-control" or phrase == "select"):
         for tag in tag_list:
             new_list += tag.find_all("option")
 
     if(new_list!= []):
         for i in range (0,len(new_list)):
             new_list[i] = new_list[i].find(string=True, recursive=False).strip()
+
     return new_list
         
