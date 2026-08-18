@@ -68,7 +68,7 @@ for t in temp:
     print(url+"-[]-"+title+"-[]-"+image)
 """
 
-#pages.find_price("https://www.quicksarchery.co.uk/bows/recurve-target-bows/Shocq-archery-triumph-carbon-foam-ILF-limbs-en")
+#print(pages.find_price("https://www.merlinarchery.co.uk/mybo-star-wood-core-recurve-limbs.html"))
 
 #sitemap.find_images("https://www.merlinarchery.co.uk/sitemap-1-1.xml")
 
@@ -86,4 +86,6 @@ hits = pages.check_from_word_list([("recurve",2),("recurve-limbs",10),("limb",5)
 print(len(hits))
 """
 
-print(pages.find_next_page("https://www.quicksarchery.co.uk/bows/recurve-target-bows/"),"<>")
+#print(pages.find_next_page("https://www.quicksarchery.co.uk/bows/recurve-target-bows/"),"<>")
+pages.find_options("https://www.altservices.co.uk/products/kinetic-lancer-v2-riser")
+

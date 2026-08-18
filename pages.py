@@ -31,16 +31,16 @@ def multi_site_scan(url_file_name):
         #print(hits)
     file.close()
 
-def check_from_word_list(word_list,url_list):
+def check_from_word_list(word_list,in_list):
     return_list = list()
-    for url in url_list:
+    for item in in_list:
         count = 0
         for word,value in word_list:
-            if word in url:
+            if word in item:
                 count+=value
 
         if count != 0:
-            heapq.heappush(return_list,(-count,url))
+            heapq.heappush(return_list,(-count,item))
     return return_list
 
 def find_target_page(current_url,key_word,word_list,max_redirects,start_time,redirects=0):
@@ -66,10 +66,9 @@ def find_next_page(url):
     page = session.get(url)
     soup = BeautifulSoup(page.text,"html.parser")
     url_list = find_urls(url)
-    print("Good")
+    
     next_pages = check_from_word_list([("next",5),("next-page",20),("page",3),("scroll",3),("?p=",3),("?P=",3)],url_list)
-    print("better")
-    print(next_pages)
+    
 
     if len(next_pages)>0:
         for i in range(len(next_pages)-1,0,-1):
@@ -93,15 +92,75 @@ def find_price(url):
     start = temp.find("£")
     price = temp[start:]
     
-    non_digit =re.findall("\D", temp[start+1:])
+    non_digit =re.findall('\\D', temp[start+1:])
 
     
     if(non_digit != [] and non_digit != ["."]):
         for char in non_digit:
             if char != ".":
-                print(char+"!!!")
                 break
         end = temp[start:].find(char)
         price = temp[start:start+end]
     
     return price
+
+def find_options(url):
+    #finds options on page
+    #TODO improve
+    #Current system only works for 4 websites, needs to be expanded
+    session = requests.session()
+    page = session.get(url)
+    soup = BeautifulSoup(page.text,"html.parser")
+    options = list()
+    options_cluttered = list()
+    successful = list()
+
+    current_length = 0
+
+    wordlist = ["product-content","product-form","select","form-control"]
+    blacklist = ["cart","buy","add","basket","notify"] 
+
+    for phrase in wordlist:
+        options_cluttered += soup.find_all(class_=re.compile(phrase))
+        #print(len(options_cluttered))
+        if len(options_cluttered) != current_length:
+            successful.append(phrase)
+            
+            for i in range(len(options_cluttered)-1,0,-1):
+                option = options_cluttered[i]
+                for word in blacklist:
+                    if word in option.text:
+                        options_cluttered.remove(option)
+                        print("REMOVED ~~~~~",i)
+            current_length = len(options_cluttered)
+            #print(current_length,"Current")
+            #print(options_cluttered)
+    
+    for phrase in successful:
+        options+= get_option_text(phrase,options_cluttered)
+
+    #print(options)
+
+    for option in options:
+        print(option)
+
+
+def get_option_text(phrase,tag_list):
+    new_list = list()
+    if (phrase == "product-content"):
+        for tag in tag_list:
+            new_list += tag.find_all("product-item-name")
+
+    elif (phrase == "product-form"):
+        for tag in tag_list:
+            new_list += tag.find_all("label")
+
+    elif (phrase == "thumb form-control" or phrase == "select"):
+        for tag in tag_list:
+            new_list += tag.find_all("option")
+
+    if(new_list!= []):
+        for i in range (0,len(new_list)):
+            new_list[i] = new_list[i].find(string=True, recursive=False).strip()
+    return new_list
+        
