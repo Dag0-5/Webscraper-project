@@ -40,5 +40,5 @@ def export(file_name, collection):
             writer.writerow([quote.text,author.text,word])
     file.close()
 
-print(pages.find_options("https://walesarchery.com/collections/recurve-risers/products/hoyt-gmx3-grand-prix-riser"))
-
+#print(pages.find_options("https://walesarchery.com/collections/recurve-risers/products/hoyt-gmx3-grand-prix-riser"))
+pages.find_title("https://www.altservices.co.uk/products/core-astral-riser")

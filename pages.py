@@ -163,3 +163,17 @@ def get_option_text(phrase,tag_list):
 
     return new_list
         
+def find_title(url):
+    remove_list = [".html","-en"]
+    last = url.rfind("/")
+    title = url[last+1:]
+    for phrase in remove_list:
+        if title.endswith(phrase):
+           index= title.rindex(phrase)
+           title = title[:index]
+    title = title.split("-")
+    replacement = ""
+    for part in title:
+        replacement += part.capitalize() +" "
+
+    print(replacement)
