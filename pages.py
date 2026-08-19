@@ -12,7 +12,6 @@ def find_urls(url,redirects=30):
     page = session.get(url)
     soup = BeautifulSoup(page.text, "html.parser")
 
-    # print(soup.prettify())
     url_list = list()
     for link in soup.find_all('a'):
         if(link.get("href")!= None):
@@ -24,12 +23,11 @@ def multi_site_scan(url_file_name):
     file = open(url_file_name,"r")
     for line in file:
         url = line.strip()
-        print(url+" - - - - - - - - -")
         url_list = find_urls(url)
         hits = check_from_word_list([("recurve",2),("recurve-limbs",10),("limb",5),("bow",5)],url_list)
-        print(heapq.heappop(hits))
-        #print(hits)
+
     file.close()
+    return hits
 
 def check_from_word_list(word_list,in_list):
     return_list = list()
@@ -133,30 +131,27 @@ def find_options(url):
             current_length = len(options_cluttered)
             
     for phrase in successful:
-        print(phrase)
         options+= get_option_text(phrase,options_cluttered)
 
     return options
 
 def get_option_text(phrase,tag_list):
     new_list = list()
+
     if (phrase == "product-content"):
+
         for tag in tag_list:
             new_list += tag.find_all(class_="product-item-name")
             
-
     elif (phrase == "product-form"):
+
         for tag in tag_list:
-            temp = len(new_list)
             new_list += tag.find_all("label")
-            if(len(new_list)>temp):
-                print(tag.text)
 
     elif (phrase == "form-control" or phrase == "select"):
         for tag in tag_list:
             new_list += tag.find_all("option")
 
-    print(new_list)
     if(new_list!= []):
         for i in range (0,len(new_list)):
             new_list[i] = new_list[i].find(string=True, recursive=False).strip()
@@ -165,15 +160,40 @@ def get_option_text(phrase,tag_list):
         
 def find_title(url):
     remove_list = [".html","-en"]
+
     last = url.rfind("/")
     title = url[last+1:]
+
     for phrase in remove_list:
+
         if title.endswith(phrase):
            index= title.rindex(phrase)
            title = title[:index]
+
     title = title.split("-")
     replacement = ""
+
     for part in title:
         replacement += part.capitalize() +" "
 
-    print(replacement)
+    return replacement
+
+def find_image(url):
+    #returns the second image as the first is sometimes a logo
+    blacklist = ["logo","cards"]
+    must_contain = ["html","www","//"]
+    
+    session = requests.session()
+    page = session.get(url)
+    soup = BeautifulSoup(page.text,"html.parser")
+    images = soup.find_all("img")
+    image_urls = list()
+    
+    for image in images:
+        source = image.get("src")
+        if(source != "" and source != None):
+               
+            if (not any(word in source for word in blacklist)) and any(word in source for word in must_contain) :
+                image_urls.append(source)
+
+    return image_urls[1]
