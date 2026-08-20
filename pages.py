@@ -18,17 +18,6 @@ def find_urls(url,redirects=30):
             url_list.append(link.get("href"))
     return list(set(url_list))
 
-
-def multi_site_scan(url_file_name):
-    file = open(url_file_name,"r")
-    for line in file:
-        url = line.strip()
-        url_list = find_urls(url)
-        hits = check_from_word_list([("recurve",2),("recurve-limbs",10),("limb",5),("bow",5)],url_list)
-
-    file.close()
-    return hits
-
 def check_from_word_list(word_list,in_list):
     return_list = list()
     for item in in_list:

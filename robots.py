@@ -1,6 +1,6 @@
 import requests
 
-def find_sitemap_in_robots(robots):
+def find_sitemap(robots):
     for line in robots.splitlines():
         if "Sitemap" in line:
             return line[line.find("https"):]
@@ -10,7 +10,7 @@ def find_robots(url):
     try:
         session = requests.session()
         page = session.get(url+"/robots.txt")
-        #print(page.text)
+        
         return page.text
     except:
         return None
@@ -32,9 +32,6 @@ def find_allow_disallow_list(robots):
         if "Disallow" in line and agent_found:
             disallow.append(line[line.find("/"):])
 
-    print(allow)
-    print(disallow)
-
     return (allow,disallow)
 
 def find_crawl_delay(robots):
@@ -46,6 +43,6 @@ def find_crawl_delay(robots):
 
         if("Crawl-Delay" in line and agent_found):
             delay  = line[line.find["[":(len(line)-1)]]
-            print(delay)
+            
             return delay
     return delay
