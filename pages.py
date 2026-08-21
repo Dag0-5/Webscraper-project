@@ -42,6 +42,9 @@ def find_price(url):
 
     price = soup.find(class_=re.compile("price"))
 
+    if(price == None):
+        return None
+    
     temp = price.text.strip()
 
     start = temp.find("£")
@@ -124,7 +127,7 @@ def find_title(url):
     for phrase in remove_list:
 
         if title.endswith(phrase):
-           index= title.rindex(phrase)
+           index = title.rindex(phrase)
            title = title[:index]
 
     title = title.split("-")
@@ -137,7 +140,7 @@ def find_title(url):
 
 def find_image(url):
     #returns the second image as the first is sometimes a logo
-    blacklist = ["logo","cards"]
+    blacklist = ["logo","card","visa","paypal"]
     must_contain = ["html","www","//"]
     
     session = requests.session()
@@ -152,7 +155,9 @@ def find_image(url):
                
             if (not any(word in source for word in blacklist)) and any(word in source for word in must_contain) :
                 image_urls.append(source)
-
+    if(image_urls == []):
+        return None
+    
     return image_urls[1]
 
 def check_from_word_list(wordlist,search_list,single,position=0):

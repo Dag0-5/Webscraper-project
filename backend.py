@@ -3,6 +3,7 @@ import robots
 import sitemap
 from os import getcwd
 import heapq
+import time # debugging use 
 
 # --------------- Search class ---------------
 
@@ -33,7 +34,6 @@ class Search():
     def search(self,category,item=None):
         results = list()
         self.wordlist = self.find_worlist(category)
-        self.wordlist.append([item.lower().replace(" ","-"),1000])
         self.item = item
         sites = file_reader("wordlists/archery_urls.txt")
         
@@ -66,11 +66,13 @@ class Search():
         # Searches this based on if the item matches urls and titles 
         # Returns the best solution
         #
+        #TODO implement crawl_delay, blacklist
+        #TODO implement html error handling i.e. error 404
         url_list = map.find_urls()
         if url_list != []:
-            possible_matches = check_from_word_list(self.wordlist,url_list,False)
+            possible_matches = check_from_word_list(self.wordlist,url_list,False,self.item)
             found,item = self.check_matches(possible_matches,True)
-
+            
             if(found):
                 return True,item
 
@@ -111,7 +113,8 @@ class Search():
         raise NotImplementedError
 
     def check_matches(self,possible_matches,sitemap_search):
-        for _,match in possible_matches:
+        while (possible_matches != []):
+            _,match = heapq.heappop(possible_matches)
             if(sitemap_search):
                 link =  match[0]
                 title = match[1].lower()
@@ -126,6 +129,9 @@ class Search():
                 else:
                     image = match[2]
 
+                    if(image == None or price == None):
+                        return True,None
+
                 return True, (link,title,image,price)
 
         return False, None
@@ -135,11 +141,24 @@ def file_reader(path):
     file = open(path,"r")
     for line in file:
         content.append(line.strip())
+    file.close()
 
     return content
 
-def check_from_word_list(wordlist,search_list,single,position=0):
+def check_from_word_list(wordlist,search_list,single,high_value_phrase=None,position=0):
     return_list = list()
+
+    if(high_value_phrase!=None):
+        word =  high_value_phrase.lower().replace(" ","-")
+
+        for item in search_list:
+            if(single):
+                if word in item:
+                    return [(-1000,item)]
+            else:
+                if word in item[position]:
+                    return [(-1000,item)]
+
     for item in search_list:
         count = 0
         for word,value in wordlist:
@@ -153,9 +172,14 @@ def check_from_word_list(wordlist,search_list,single,position=0):
                     count+= value
 
         if count != 0:
+            if(count >= 1000):
+                return [(-count,item)]
             heapq.heappush(return_list,(-count,item))
     return return_list
 
-
+start = time.time()
 test = Search()
-test.search("recurve_limbs","Mybo Star Wood Core Recurve Limbs")
+test.search("recurve_limbs","Kap Challenger Carbon Recurve Limbs")
+end = time.time()
+
+print("Time take = ", end-start)

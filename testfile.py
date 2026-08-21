@@ -40,4 +40,4 @@ def export(file_name, collection):
             writer.writerow([quote.text,author.text,word])
     file.close()
 
-print(pages.find_image("https://www.altservices.co.uk/products/core-astral-riser"))
+print(pages.find_image("https://www.merlinarchery.co.uk/kap-challenger-carbon-recurve-limbs.html"))
