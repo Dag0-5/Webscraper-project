@@ -32,10 +32,10 @@ def find_allow_disallow_list(robots):
         if "Disallow" in line and agent_found:
             disallow.append(line[line.find("/"):])
 
-    return (allow,disallow)
+    return allow,disallow
 
 def find_crawl_delay(robots):
-    delay = 100
+    delay = 10
     agent_found = False
     for line in robots.splitlines():
         if ("User-agent" in line and "*" in line):

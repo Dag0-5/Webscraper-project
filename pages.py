@@ -1,9 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
-import heapq
-import time 
-import random
 import re
+import heapq
 
 def find_urls(url,redirects=30):
     session = requests.session()
@@ -17,36 +15,6 @@ def find_urls(url,redirects=30):
         if(link.get("href")!= None):
             url_list.append(link.get("href"))
     return list(set(url_list))
-
-def check_from_word_list(word_list,in_list):
-    return_list = list()
-    for item in in_list:
-        count = 0
-        for word,value in word_list:
-            if word in item:
-                count+=value
-
-        if count != 0:
-            heapq.heappush(return_list,(-count,item))
-    return return_list
-
-def find_target_page(current_url,key_word,word_list,max_redirects,start_time,redirects=0):
-
-    print(str(time.time()-start_time)," - - ",redirects)
-
-    if redirects >=max_redirects or time.time()-start_time>=2:
-        return
-    
-    if key_word in current_url:
-        return current_url
-    else: 
-        url_list = find_urls(current_url)
-        hits = check_from_word_list(word_list,url_list)
-        value,next_url = heapq.heappop(hits)
-        print(next_url)
-        if key_word in next_url:
-            time.sleep(random.random()*0.1)
-            return find_target_page(next_url,key_word,word_list,max_redirects,start_time,redirects+1)
         
 def find_next_page(url):
     session = requests.session()
@@ -186,3 +154,20 @@ def find_image(url):
                 image_urls.append(source)
 
     return image_urls[1]
+
+def check_from_word_list(wordlist,search_list,single,position=0):
+    return_list = list()
+    for item in search_list:
+        count = 0
+        for word,value in wordlist:
+            if(single):
+                if word in item:
+                    count+=value
+            else:
+                if word in item[position]:
+                    count+= value
+
+        if count != 0:
+            heapq.heappush(return_list,(-count,item))
+            
+    return return_list
