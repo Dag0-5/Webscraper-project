@@ -57,7 +57,7 @@ class Search():
         if url_list != []:
             possible_matches = check_from_word_list(self.wordlist,url_list,False,self.item)
             found,item = self.check_matches(possible_matches,True)
-            
+
             if(found):
                 return True,item
 
@@ -100,7 +100,9 @@ class Search():
 
 
     def check_matches(self,possible_matches,sitemap_search):
+        
         while (possible_matches != []):
+            
             _,match = heapq.heappop(possible_matches)
             if(sitemap_search):
                 link =  match[0]
@@ -109,10 +111,10 @@ class Search():
                 link = match
                 title = pages.find_title(link).lower()
 
-            page = pages.Page(link)
-            page.find_soup()
-
             if self.item.lower() in link or self.item.lower() in title:
+                
+                page = pages.Page(link)
+                page.find_soup()
                 price =  page.find_price()
                 if(not sitemap_search):
                     image = page.find_image()
@@ -129,7 +131,7 @@ class Search():
 
 start = time.time()
 test = Search()
-test.search("recurve_limbs",find_wordlist("archery_urls",False),"Kap Challenger Carbon Recurve Limbs")
+test.search("recurve_limbs",find_wordlist("archery_urls",False),"Mybo Star Wood Core Recurve Limbs")
 end = time.time()
 
 print("Time take = ", end-start)

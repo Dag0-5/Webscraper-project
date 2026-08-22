@@ -1,7 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
 import re
-import heapq
 from file_interactions import find_wordlist,check_from_word_list
 # --------------- Page class ---------------
 
@@ -158,7 +157,7 @@ class Page():
                 if (not any(word in source for word in blacklist)) and any(word in source for word in must_contain) :
                     image_urls.append(source)
 
-        if(image_urls == []):
+        if(len(image_urls) < 2):
             return None
         
         return image_urls[1]
