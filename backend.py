@@ -2,14 +2,15 @@ import pages
 import robots
 import sitemap
 import heapq
-import time # debugging use 
+import time 
+import re
 from file_interactions import find_wordlist,check_from_word_list
 # --------------- Search class ---------------
 
 class Search():
 
     def __init__(self,item=None):
-        self.crawl_delay = 10
+        self.crawl_delay = 0.01
         self.allow = list()
         self.disallow = list()
         self.wordlist = list()
@@ -28,7 +29,7 @@ class Search():
             
             else:
                 map = robots.find_sitemap(robot)
-                self.crawl_delay = robots.find_crawl_delay(robot)
+                self.crawl_delay = robots.find_crawl_delay(robot)/1000
                 self.allow,self.disallow = robots.find_allow_disallow_list(robot)
 
                 if(map != None):
@@ -51,9 +52,12 @@ class Search():
         # Searches this based on if the item matches urls and titles 
         # Returns the best solution
         #
-        #TODO implement crawl_delay, blacklist
         #TODO implement html error handling i.e. error 404
+        
+        time.sleep(self.crawl_delay)
         url_list = map.find_urls()
+        url_list = self.remove_disallowed(url_list)
+
         if url_list != []:
             possible_matches = check_from_word_list(self.wordlist,url_list,False,self.item)
             found,item = self.check_matches(possible_matches,True)
@@ -127,6 +131,26 @@ class Search():
                 return True, (link,title,image,price)
 
         return False, None
+
+    def remove_disallowed(self,url_list,single=False):
+
+        disallowed_pattern = re.compile('|'.join(re.escape(w) for w in self.disallow))
+
+        for url in url_list:
+
+            if(not single):
+
+                link = url[0]
+
+            else:
+
+                link = url
+
+            if re.search(disallowed_pattern,link) != None:
+
+                url_list.remove(url)
+
+        return url_list
 
 
 start = time.time()
