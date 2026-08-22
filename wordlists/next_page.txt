@@ -1,0 +1,6 @@
+next,5
+next-page,20
+page,3
+scroll,3
+?p=,3
+?P=,3
