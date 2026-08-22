@@ -1,5 +1,4 @@
-recurve-limb,10
-limb,5
-bow,5
-recurve,2
-ilf,5
+limb
+bow
+recurve
+ilf

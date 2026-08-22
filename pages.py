@@ -92,8 +92,8 @@ class Page():
         successful        = list()
         current_length    = 0
 
-        wordlist    = find_wordlist("options_wordlist",False)
-        blacklist   = find_wordlist("options_blacklist",False)
+        wordlist    = find_wordlist("options_wordlist")
+        blacklist   = find_wordlist("options_blacklist")
 
         for phrase in wordlist:
 
@@ -176,8 +176,8 @@ class Page():
     def find_image(self):
         #returns the second image as the first is sometimes a logo
         
-        blacklist    = find_wordlist("image_blacklist",False)
-        must_contain = find_wordlist("url_must_contains",False)
+        blacklist    = find_wordlist("image_blacklist")
+        must_contain = find_wordlist("url_must_contains")
         
         images = self.soup.find_all("img")
         image_urls = list()
@@ -193,7 +193,7 @@ class Page():
                     image_urls.append(source)
 
         if(len(image_urls) < 2):
-            
+
             return None
         
         return image_urls[1]

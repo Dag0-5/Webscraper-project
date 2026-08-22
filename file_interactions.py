@@ -3,25 +3,12 @@ import heapq
 import re
 # functions used for file interactions
 
-def find_wordlist(category,values=True):
+def find_wordlist(category):
         
-        wordlist  = list()
-        path      = ("/wordlists/" + category + ".txt")
-        cluttered = file_reader(path)
-
-        if(values):
-
-            for line in cluttered:
-
-                word,value = line.split(",")
-                value      = int(value)
-                wordlist.append([word,value])
-
-        else:
-
-            wordlist = cluttered
-            
-        return wordlist
+    wordlist  = list()
+    path      = ("/wordlists/" + category + ".txt")
+    wordlist = file_reader(path)    
+    return wordlist
 
 
 def file_reader(path):
@@ -44,13 +31,13 @@ def check_from_word_list(wordlist,search_list,single,high_value_phrase=None,posi
     return_list = list()
 
     if(high_value_phrase!=None):
-        
+
         words   = high_value_phrase.lower().split(" ")
         words.sort()
         pattern = re.compile('|'.join(re.escape(w) for w in words))
 
-        for item in search_list:
-
+        for item in list(search_list):
+            
             if(single):
 
                 comparison = item
@@ -62,8 +49,8 @@ def check_from_word_list(wordlist,search_list,single,high_value_phrase=None,posi
         
             matches = list(set(re.findall(pattern,comparison)))
             matches.sort()
-            
-            if (matches == words):
+
+            if (len(matches)==len(words)):
 
                 return [(-1000,item)]
 
@@ -71,38 +58,32 @@ def check_from_word_list(wordlist,search_list,single,high_value_phrase=None,posi
 
                 if(len(matches)>0):
 
-                    return_list.append((-1000/len(matches),item))
+                    value = -1000*(len(matches)/len(words))
+                    heapq.heappush(return_list,(value,item))
                     search_list.remove(item)    
+                    [].remove
+    
+    pattern = re.compile('|'.join(re.escape(w) for w in wordlist))
 
     for item in search_list:
 
-        count = 0
+        value = 0
 
-        for word,value in wordlist:
+        if(single):
+    
+            temp = item.lower()
 
-            if(single):
+        else:
 
-                temp = item.lower()
-
-                if word in temp:
-
-                    count+=value
-
-            else:
-
-                temp = item[position].lower()
-
-                if word in temp:
-
-                    count+= value
+          temp = item[position].lower()
 
 
-        if count != 0:
+        matches = list(set(re.findall(pattern,temp)))
+        matches.sort()
 
-            if(count >= 1000):
-
-                return [(-count,item)]
-
-            heapq.heappush(return_list,(-count,item))
+        if(len(matches)>0):
+            
+            value = -100*(len(matches)/len(wordlist))
+            heapq.heappush(return_list,(value,item))
 
     return return_list

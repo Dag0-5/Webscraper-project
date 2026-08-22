@@ -71,6 +71,7 @@ class Search():
         #TODO implement html error handling i.e. error 404
         
         time.sleep(self.crawl_delay)
+
         url_list = map.find_urls()
         url_list = self.remove_disallowed(url_list)
 
@@ -181,7 +182,7 @@ class Search():
         while (possible_matches != []):
             
             _,match = heapq.heappop(possible_matches)
-
+            
             if(sitemap_search):
 
                 link  = match[0]
@@ -214,6 +215,7 @@ class Search():
 
         return False, None
 
+
     def remove_disallowed(self,url_list,single=False):
 
         disallowed_pattern = re.compile('|'.join(re.escape(w) for w in self.disallow))
@@ -237,7 +239,7 @@ class Search():
 
 start = time.time()
 test = Search()
-test.search("recurve_limbs",find_wordlist("archery_urls",False),"Mybo Star Wood Core Recurve Limbs")
+test.search("recurve_limbs",find_wordlist("archery_urls"),"Mybo Star Wood Core Recurve Limbs")
 end = time.time()
 
 print("Time take = ", end-start)

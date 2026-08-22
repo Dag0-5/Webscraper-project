@@ -4,6 +4,7 @@ import csv
 import sitemap
 import pages
 import robots
+import re
 
 def page_scraper(url,wordlist):
     collection = list()
@@ -39,3 +40,9 @@ def export(file_name, collection):
             print(quote.text+" - "+author.text+" - "+word)
             writer.writerow([quote.text,author.text,word])
     file.close()
+
+"www.merlinarchery.co.uk/mybo-star-wood-core-recurve-limbs.html"
+words   = "Mybo Star Wood Core Recurve Limbs".lower().split(" ")
+pattern = re.compile('|'.join(re.escape(w) for w in words))
+matches = list(set(re.findall(pattern,"www.merlinarchery.co.uk/mybo-star-wood-core-recurve-limbs.html")))
+print(matches)
