@@ -39,6 +39,3 @@ def export(file_name, collection):
             print(quote.text+" - "+author.text+" - "+word)
             writer.writerow([quote.text,author.text,word])
     file.close()
-page = pages.Page("https://www.merlinarchery.co.uk/mybo-star-wood-core-recurve-limbs.html")
-page.find_soup()
-print(page.find_image())

@@ -18,27 +18,43 @@ class Search():
 
     
     def search(self,category,sites,item=None):
-        results = list()
+
+        results       = list()
         self.wordlist = find_wordlist(category)
-        self.item = item
+        self.item     = item
         
         for url in sites:
+
+            #TODO remove
+            #Use for testing
+            #url = "https://www.quicksarchery.co.uk/"
+            #
+            #TODO remove  
             robot = robots.find_robots(url)
+            
+
             if(robot == None):
-                result = self.no_sitemap_search(url)
+
+                page = pages.Page(url)
+                page.find_soup()
+                result = self.no_sitemap_search(page)
             
             else:
-                map = robots.find_sitemap(robot)
-                self.crawl_delay = robots.find_crawl_delay(robot)/1000
+
+                map                      = robots.find_sitemap(robot)
+                self.crawl_delay         = robots.find_crawl_delay(robot)/1000
                 self.allow,self.disallow = robots.find_allow_disallow_list(robot)
 
                 if(map != None):
-                    map = sitemap.Sitemap(map)
+                    map    = sitemap.Sitemap(map)
                     map.find_sitemaps()
                     result = self.sitemap_search(map)
 
                 else:
-                    result = self.no_sitemap_search(url)
+
+                    page = pages.Page(url)
+                    page.find_soup()
+                    result = self.no_sitemap_search(page)
 
             results.append([url,result])
             print(results)
@@ -99,8 +115,65 @@ class Search():
             return False,best_fit
 
     
-    def no_sitemap_search(self,url):
-        raise NotImplementedError
+    def no_sitemap_search(self,page):
+
+        if(page.soup == None):
+
+            page.find_soup()
+
+        print(page)
+
+        time.sleep(self.crawl_delay)
+        children = list()
+
+        page.find_urls()
+        next_pages = page.find_next_pages()
+
+        for next_page in next_pages:
+
+            page.url_list.append(next_page)
+
+        return page.url_list
+    
+        if(page.url_list != None):
+
+            page.url_list         = self.remove_disallowed(page.url_list)    
+            possible_matches = check_from_word_list(self.wordlist,page.url_list,True,self.item)
+
+            for match in possible_matches:
+                
+                children.append(pages.Page(match[1],page))
+
+            page.children = children
+
+            found,item    = self.check_matches(page.children,False)
+
+            if(found):
+
+                return True,item
+
+            else:
+
+                if(possible_matches == []):
+
+                    best_fit = (0,None)
+
+                else:
+
+                    best_fit = possible_matches[0]
+
+                for child in page.children:
+
+                    found,item = self.no_sitemap_search(child)
+
+                    if(found):
+                        return found,item
+
+                    else:
+                        if item[0] < best_fit[0]:
+                            best_fit = item
+
+                return False,best_fit 
 
 
     def check_matches(self,possible_matches,sitemap_search):
@@ -108,22 +181,31 @@ class Search():
         while (possible_matches != []):
             
             _,match = heapq.heappop(possible_matches)
+
             if(sitemap_search):
-                link =  match[0]
+
+                link  = match[0]
                 title = match[1].lower()
+
             else:
-                link = match
-                title = pages.find_title(link).lower()
+                
+                link  = match.url
+                title = match.find_title()
 
             if self.item.lower() in link or self.item.lower() in title:
-                
-                page = pages.Page(link)
-                page.find_soup()
-                price =  page.find_price()
-                if(not sitemap_search):
-                    image = page.find_image()
-                else:
+
+                if(sitemap_search):
+
+                    page  = pages.Page(link)
+                    page.find_soup()
+                    price = page.find_price()
                     image = match[2]
+
+                else:
+
+                    match.find_soup()
+                    image = match.find_image()
+                    price = match.find_price()
 
                     if(image == None or price == None):
                         return True,None
