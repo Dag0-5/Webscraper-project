@@ -45,11 +45,19 @@ class Search():
                     map.find_sitemaps()
                     result = self.sitemap_search(map)
 
+                    if (not result[0] and result[1] != (0,None)):
+                        
+                        result = (False,self.get_details(result[1],True,result[1][0],result[1][1]))
+
                 else:
 
                     page = pages.Page(url)
                     page.find_soup()
                     result = self.no_sitemap_search(page)
+
+                    if (not result[0] and result[1].url != ""):
+
+                        result = (False,self.get_details(result[1],False,result[1].url,result[1].find_title()))
 
             results.append([url,result])
             print(url,"SEARCH COMPLETE")
@@ -219,7 +227,7 @@ class Search():
                 return False,best_fit 
 
 
-    def check_matches(self,match_list,sitemap_search,page=None):
+    def check_matches(self,match_list,sitemap_search):
         
         while (match_list != []):
 
@@ -266,6 +274,27 @@ class Search():
                 return True, (link,title,image,price)
 
         return False, None
+
+
+    def get_details(self,match,sitemap_search,link,title):
+
+        if(sitemap_search):
+    
+            page  = pages.Page(link)
+            page.find_soup()
+            price = page.find_price()
+            image = match[2]
+
+        else:
+
+            match.find_soup()
+            image = match.find_image()
+            price = match.find_price()
+
+            if(image == None or price == None):
+                return True,None
+
+        return True, (link,title,image,price)
 
 
     def remove_disallowed(self,url_list,single=False):
