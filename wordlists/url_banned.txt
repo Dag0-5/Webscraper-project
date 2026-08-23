@@ -1,3 +1,7 @@
 tel:
 telephone:
 #
+about
+guide
+gift
+contact

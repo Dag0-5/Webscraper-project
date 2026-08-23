@@ -4,7 +4,8 @@ import sitemap
 import heapq
 import time 
 import re
-from file_interactions import find_wordlist,check_from_word_list
+from file_interactions import (find_wordlist,export,check_from_word_list)
+
 # --------------- Search class ---------------
 
 class Search():
@@ -24,9 +25,6 @@ class Search():
         self.item     = item
         
         for url in sites:
-
-            #TODO remove
-            url = "https://www.quicksarchery.co.uk/"
 
             robot = robots.find_robots(url)
 
@@ -54,10 +52,10 @@ class Search():
                     result = self.no_sitemap_search(page)
 
             results.append([url,result])
-            print([url,result])
-            break
+            print(url,"SEARCH COMPLETE")
             
-
+            
+        export(results)
         return results
 
 
@@ -133,14 +131,12 @@ class Search():
     
     def no_sitemap_search(self,page):
 
-        #print("NEW PAGE",page.url,page.get_previous(),page.value)
-
         if(page.soup == None):
 
             page.find_soup()
 
-        if(len(page.get_previous())>4):
-           #print("TOO DEEP")
+        if(len(page.get_previous())>10):
+
            return False, pages.Page("")
         
         time.sleep(self.crawl_delay)
@@ -153,7 +149,6 @@ class Search():
 
             if(page.compare_pages(other)):
 
-                #print("SAME PAGE")
                 return False,pages.Page("")
 
             other = other.parent
@@ -163,8 +158,6 @@ class Search():
         for next_page in next_pages:
 
             page.url_list.append(next_page)
-
-        #print(len(page.url_list))
 
         previous = page.get_previous()
         
@@ -207,7 +200,6 @@ class Search():
 
                 if(best_fit.value>=page.value):
 
-                    #print("DEAD END",page.url)
                     return False,page
 
                 for child in page.children:
@@ -303,5 +295,5 @@ start = time.time()
 test = Search()
 results = test.search("recurve_limbs",find_wordlist("archery_urls"),"Shocq Triumph Recurve Limbs")
 end = time.time()
-print()
+print(results)
 print("Time taken = ", end-start)
