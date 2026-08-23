@@ -10,7 +10,7 @@ from file_interactions import find_wordlist,check_from_word_list
 class Search():
 
     def __init__(self,item=None):
-        self.crawl_delay = 0.01
+        self.crawl_delay = 0.1
         self.allow = list()
         self.disallow = list()
         self.wordlist = list()
@@ -26,12 +26,9 @@ class Search():
         for url in sites:
 
             #TODO remove
-            #Use for testing
-            #url = "https://www.quicksarchery.co.uk/"
-            #
-            #TODO remove  
+            url = "https://www.quicksarchery.co.uk/"
+
             robot = robots.find_robots(url)
-            
 
             if(robot == None):
 
@@ -57,8 +54,11 @@ class Search():
                     result = self.no_sitemap_search(page)
 
             results.append([url,result])
-            print(results)
-            break # TODO remove after testing
+            print([url,result])
+            break
+            
+
+        return results
 
 
     def sitemap_search(self,map):
@@ -76,41 +76,56 @@ class Search():
         url_list = self.remove_disallowed(url_list)
 
         if url_list != []:
-            possible_matches = check_from_word_list(self.wordlist,url_list,False,self.item)
-            found,item = self.check_matches(possible_matches,True)
 
+            possible_matches = check_from_word_list(self.wordlist,url_list,False,self.item)
+            found,item       = self.check_matches(possible_matches,True)
+            
             if(found):
+
                 return True,item
 
             else:
+
                 if(possible_matches == []):
+
                     best_fit = (0,None)
 
                 else:
+
                     best_fit = possible_matches[0]
 
                 for child in map.children:
+
                     found,item = self.sitemap_search(child)
 
                     if(found):
+
                         return found,item
 
                     else:
+
                         if item[0] < best_fit[0]:
+
                             best_fit = item
 
                 return False,best_fit 
 
         else:
+
             best_fit = (0,None)
+
             for child in map.children:
+
                 found,item = self.sitemap_search(child)
 
                 if(found):
+
                     return found,item
 
                 else:
+
                     if item[0] < best_fit[0]:
+
                         best_fit = item
 
             return False,best_fit
@@ -118,36 +133,63 @@ class Search():
     
     def no_sitemap_search(self,page):
 
+        #print("NEW PAGE",page.url,page.get_previous(),page.value)
+
         if(page.soup == None):
 
             page.find_soup()
 
-        print(page)
-
+        if(len(page.get_previous())>4):
+           #print("TOO DEEP")
+           return False, pages.Page("")
+        
         time.sleep(self.crawl_delay)
-        children = list()
-
+        children  = list()
         page.find_urls()
+
+        other = page.parent
+
+        while (other != None):
+
+            if(page.compare_pages(other)):
+
+                #print("SAME PAGE")
+                return False,pages.Page("")
+
+            other = other.parent
+            
         next_pages = page.find_next_pages()
 
         for next_page in next_pages:
 
             page.url_list.append(next_page)
 
-        return page.url_list
-    
+        #print(len(page.url_list))
+
+        previous = page.get_previous()
+        
+        for url in list(page.url_list):
+
+            for p in previous:
+
+                if p == url:
+
+                    page.url_list.remove(url)
+                    break
+
         if(page.url_list != None):
 
-            page.url_list         = self.remove_disallowed(page.url_list)    
-            possible_matches = check_from_word_list(self.wordlist,page.url_list,True,self.item)
+            page.url_list    = self.remove_disallowed(page.url_list,True)   
+            possible_matches = check_from_word_list(self.wordlist,page.url_list,True,self.item) 
+        
+            while (possible_matches != []):
 
-            for match in possible_matches:
-                
-                children.append(pages.Page(match[1],page))
+                pair  = heapq.heappop(possible_matches)
+                child = pages.Page(pair[1],page,pair[0])
+                children.append(child)
 
             page.children = children
-
-            found,item    = self.check_matches(page.children,False)
+            found,item    = self.check_matches(list(page.children),False)
 
             if(found):
 
@@ -155,45 +197,63 @@ class Search():
 
             else:
 
-                if(possible_matches == []):
+                if(page.children == []):
 
-                    best_fit = (0,None)
+                    best_fit = pages.Page("")
 
                 else:
 
-                    best_fit = possible_matches[0]
+                    best_fit = page.children[0]
+
+                if(best_fit.value>=page.value):
+
+                    #print("DEAD END",page.url)
+                    return False,page
 
                 for child in page.children:
 
                     found,item = self.no_sitemap_search(child)
 
                     if(found):
+
                         return found,item
 
                     else:
-                        if item[0] < best_fit[0]:
+
+                        if item.value < best_fit.value:
+
                             best_fit = item
 
                 return False,best_fit 
 
 
-    def check_matches(self,possible_matches,sitemap_search):
+    def check_matches(self,match_list,sitemap_search,page=None):
         
-        while (possible_matches != []):
-            
-            _,match = heapq.heappop(possible_matches)
-            
+        while (match_list != []):
+
             if(sitemap_search):
 
-                link  = match[0]
-                title = match[1].lower()
+                value,match = heapq.heappop(match_list)
+                link   = match[0].lower()
+                title  = match[1].lower()
 
             else:
-                
-                link  = match.url
-                title = match.find_title()
 
-            if self.item.lower() in link or self.item.lower() in title:
+                match = match_list[0]
+                value = match.value
+                link  = match.url.lower()
+                title = match.find_title()
+                del match_list[0]
+
+            words         = self.item.lower().split(" ")
+            pattern       = re.compile('|'.join(re.escape(w) for w in words))
+            link_matches  = list(set(re.findall(pattern,link)))
+            title_matches = list(set(re.findall(pattern,title)))
+            words.sort()
+            link_matches.sort()
+            title_matches.sort()
+
+            if (link_matches==words or title_matches==words):
 
                 if(sitemap_search):
 
@@ -218,28 +278,30 @@ class Search():
 
     def remove_disallowed(self,url_list,single=False):
 
-        disallowed_pattern = re.compile('|'.join(re.escape(w) for w in self.disallow))
+        if (self.disallow != []):
 
-        for url in url_list:
+            disallowed_pattern = re.compile('|'.join(re.escape(w) for w in self.disallow))
 
-            if(not single):
+            for url in url_list:
 
-                link = url[0]
+                if(not single):
 
-            else:
+                    link = url[0]
 
-                link = url
+                else:
 
-            if re.search(disallowed_pattern,link) != None:
+                    link = url
 
-                url_list.remove(url)
+                if re.search(disallowed_pattern,link) != None:
+
+                    url_list.remove(url)
 
         return url_list
 
 
 start = time.time()
 test = Search()
-test.search("recurve_limbs",find_wordlist("archery_urls"),"Mybo Star Wood Core Recurve Limbs")
+results = test.search("recurve_limbs",find_wordlist("archery_urls"),"Shocq Triumph Recurve Limbs")
 end = time.time()
-
-print("Time take = ", end-start)
+print()
+print("Time taken = ", end-start)

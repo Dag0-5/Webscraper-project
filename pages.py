@@ -6,7 +6,7 @@ from file_interactions import find_wordlist,check_from_word_list
 
 class Page():
 
-    def __init__(self,url,parent=None,children=None):
+    def __init__(self,url,parent=None,value=0,children=None):
 
         self.url      = url
         self.session  = requests.session()
@@ -14,6 +14,7 @@ class Page():
         self.soup     = None
         self.parent   = parent
         self.children = children
+        self.value    = value
         self.url_list = list()
 
     def find_soup(self):
@@ -24,11 +25,24 @@ class Page():
         
     def find_urls(self):
 
+        must_contain = find_wordlist("url_must_contains")
+        banned       = find_wordlist("url_banned")
+
         for link in self.soup.find_all('a'):
 
             if(link.get("href")!= None):
 
-                self.url_list.append(link.get("href"))
+                url = link.get("href")
+
+                if (url != "/"):
+
+                    if (not any(word in url for word in must_contain) and not any (word in url for word in banned)):
+
+                        url = self.url+"/"+url
+
+                    self.url_list.append(url)
+
+        self.url_list = list(set(self.url_list))
 
         
     def find_next_pages(self):
@@ -197,3 +211,20 @@ class Page():
             return None
         
         return image_urls[1]
+
+
+    def get_previous(self):
+
+        ancestors = [self.url]
+        parent    = self.parent
+
+        while (parent != None):
+
+            ancestors.append(parent.url)
+            parent = parent.parent
+
+        return ancestors
+
+    def compare_pages(self,other_page):
+
+        return (self.soup.text==other_page.soup.text)

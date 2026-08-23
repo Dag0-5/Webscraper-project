@@ -40,16 +40,15 @@ def check_from_word_list(wordlist,search_list,single,high_value_phrase=None,posi
             
             if(single):
 
-                comparison = item
+                comparison = item.lower()
 
             else:
 
-                comparison = item[position]
+                comparison = item[position].lower()
 
-        
             matches = list(set(re.findall(pattern,comparison)))
             matches.sort()
-
+            
             if (len(matches)==len(words)):
 
                 return [(-1000,item)]
@@ -57,11 +56,10 @@ def check_from_word_list(wordlist,search_list,single,high_value_phrase=None,posi
             else:
 
                 if(len(matches)>0):
-
+                    
                     value = -1000*(len(matches)/len(words))
                     heapq.heappush(return_list,(value,item))
                     search_list.remove(item)    
-                    [].remove
     
     pattern = re.compile('|'.join(re.escape(w) for w in wordlist))
 

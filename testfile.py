@@ -5,6 +5,7 @@ import sitemap
 import pages
 import robots
 import re
+import file_interactions
 
 def page_scraper(url,wordlist):
     collection = list()
@@ -41,8 +42,7 @@ def export(file_name, collection):
             writer.writerow([quote.text,author.text,word])
     file.close()
 
-"www.merlinarchery.co.uk/mybo-star-wood-core-recurve-limbs.html"
-words   = "Mybo Star Wood Core Recurve Limbs".lower().split(" ")
-pattern = re.compile('|'.join(re.escape(w) for w in words))
-matches = list(set(re.findall(pattern,"www.merlinarchery.co.uk/mybo-star-wood-core-recurve-limbs.html")))
-print(matches)
+print(file_interactions.check_from_word_list(file_interactions.find_wordlist("recurve_limbs"),
+                                             ["https://www.quicksarchery.co.uk/bows/recurve-target-bows/Shocq-archery-triumph-carbon-foam-ILF-limbs-en"],
+                                             True,
+                                             "Shocq Triumph ILF Limbs"))
