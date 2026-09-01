@@ -63,30 +63,36 @@ def result_to_product(url, result):
 @app.route("/search", methods=["GET"])
 def search():
     """
-    GET /search?item=<query>&category=<wordlist category>
+    GET /search?item=<query>&category=<keyword category>&site_list=<sites wordlist>
 
     - item: the product to search for, e.g. "Shocq Triumph Recurve Limbs"
       (required)
-    - category: which wordlist/site-list to use from file_interactions,
+    - category: which keyword wordlist to match titles/links against,
       e.g. "recurve_limbs" (optional, defaults to "recurve_limbs")
+    - site_list: which wordlist of sites to crawl, e.g. "archery_urls"
+      (optional, defaults to "archery_urls")
 
     Returns: { "products": [ {title, price, image, website, link}, ... ] }
     """
     item = request.args.get("item", "").strip()
     category = request.args.get("category", "recurve_limbs").strip()
+    # The list of sites to crawl is a separate wordlist from the keyword
+    # category used for matching (see backend.py's own test call at the
+    # bottom, which passes these as two different find_wordlist() calls).
+    site_list = request.args.get("site_list", "archery_urls").strip()
 
     if not item:
         return jsonify({"error": "Query parameter 'item' is required."}), 400
 
     try:
-        sites = find_wordlist(category)
+        sites = find_wordlist(site_list)
     except Exception as exc:
         return jsonify({
-            "error": f"Could not load site list for category '{category}': {exc}"
+            "error": f"Could not load site list '{site_list}': {exc}"
         }), 400
 
     if not sites:
-        return jsonify({"error": f"No sites configured for category '{category}'."}), 400
+        return jsonify({"error": f"No sites configured for site list '{site_list}'."}), 400
 
     try:
         searcher = Search()
