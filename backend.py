@@ -27,6 +27,7 @@ class Search():
         for url in sites:
 
             robot = robots.find_robots(url)
+            start = time.time()
 
             if(robot == None):
 
@@ -59,9 +60,11 @@ class Search():
 
                         result = (False,self.get_details(result[1],False,result[1].url,result[1].find_title()))
 
+            end = time.time()
+
             results.append([url,result])
             print(url,"SEARCH COMPLETE")
-            
+            print("Time taken = ", end-start)            
             
         export(results)
         return results
@@ -319,10 +322,10 @@ class Search():
 
         return url_list
 
-
-start = time.time()
-test = Search()
-results = test.search("recurve_limbs",find_wordlist("archery_urls"),"Shocq Triumph Recurve Limbs")
-end = time.time()
-print(results)
-print("Time taken = ", end-start)
+if __name__ == "__main__":
+    start = time.time()
+    test = Search()
+    results = test.search("recurve_limbs",find_wordlist("archery_urls"),"Shocq Triumph Recurve Limbs")
+    end = time.time()
+    print(results)
+    print("Time taken = ", end-start)
