@@ -4,6 +4,7 @@ import sitemap
 import heapq
 import time 
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from file_interactions import (find_wordlist,export,check_from_word_list)
 
 # --------------- Search class ---------------
@@ -18,56 +19,101 @@ class Search():
         self.item = item
 
     
-    def search(self,category,sites,item=None):
+    def search(self,category,sites,item=None,max_workers=8):
+        #
+        # Searches every site concurrently using a thread pool.
+        #
+        # Each site is searched by its own Search() worker instance so that
+        # per-site state (crawl_delay, allow/disallow lists) set while
+        # reading that site's robots.txt doesn't get clobbered by other
+        # threads searching other sites at the same time. self.wordlist
+        # and item are read-only for the duration of the search, so it's
+        # safe to share them across threads.
+        #
 
-        results       = list()
         self.wordlist = find_wordlist(category)
         self.item     = item
-        
-        for url in sites:
 
-            robot = robots.find_robots(url)
-            start = time.time()
+        results = [None] * len(sites)
 
-            if(robot == None):
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+
+            future_to_index = {
+                executor.submit(self._search_site_safe, url): index
+                for index, url in enumerate(sites)
+            }
+
+            for future in as_completed(future_to_index):
+
+                index          = future_to_index[future]
+                url, result    = future.result()
+                results[index] = [url,result]
+
+        export(results)
+        return results
+
+
+    def _search_site_safe(self,url):
+        #
+        # Runs _search_site in a fresh worker instance and never lets an
+        # exception from one site take down the whole thread pool.
+        #
+
+        try:
+
+            worker          = Search(self.item)
+            worker.wordlist = self.wordlist
+            result          = worker._search_site(url)
+
+        except Exception as exc:
+
+            print(url,"SEARCH FAILED:",exc)
+            result = (False,None)
+
+        return url,result
+
+
+    def _search_site(self,url):
+
+        start = time.time()
+
+        robot = robots.find_robots(url)
+
+        if(robot == None):
+
+            page = pages.Page(url)
+            page.find_soup()
+            result = self.no_sitemap_search(page)
+
+        else:
+
+            map                      = robots.find_sitemap(robot)
+            self.crawl_delay         = robots.find_crawl_delay(robot)/1000
+            self.allow,self.disallow = robots.find_allow_disallow_list(robot)
+
+            if(map != None):
+                map    = sitemap.Sitemap(map)
+                map.find_sitemaps()
+                result = self.sitemap_search(map)
+
+                if (not result[0] and result[1] != (0,None)):
+
+                    result = (False,self.get_details(result[1],True,result[1][0],result[1][1]))
+
+            else:
 
                 page = pages.Page(url)
                 page.find_soup()
                 result = self.no_sitemap_search(page)
-            
-            else:
 
-                map                      = robots.find_sitemap(robot)
-                self.crawl_delay         = robots.find_crawl_delay(robot)/1000
-                self.allow,self.disallow = robots.find_allow_disallow_list(robot)
+                if (not result[0] and result[1].url != ""):
 
-                if(map != None):
-                    map    = sitemap.Sitemap(map)
-                    map.find_sitemaps()
-                    result = self.sitemap_search(map)
+                    result = (False,self.get_details(result[1],False,result[1].url,result[1].find_title()))
 
-                    if (not result[0] and result[1] != (0,None)):
-                        
-                        result = (False,self.get_details(result[1],True,result[1][0],result[1][1]))
-
-                else:
-
-                    page = pages.Page(url)
-                    page.find_soup()
-                    result = self.no_sitemap_search(page)
-
-                    if (not result[0] and result[1].url != ""):
-
-                        result = (False,self.get_details(result[1],False,result[1].url,result[1].find_title()))
-
-            end = time.time()
-
-            results.append([url,result])
-            print(url,"SEARCH COMPLETE")
-            print("Time taken = ", end-start)            
-            
-        export(results)
-        return results
+        end = time.time()
+        print(f"{url} SEARCH COMPLETED") 
+        print(f"Time taken = {end-start}")
+        return result
 
 
     def sitemap_search(self,map):
@@ -321,6 +367,7 @@ class Search():
                     url_list.remove(url)
 
         return url_list
+
 
 if __name__ == "__main__":
     start = time.time()

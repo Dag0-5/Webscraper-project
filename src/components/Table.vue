@@ -44,6 +44,7 @@ export default {
       loading: false,
       error: null,
       query: '',
+      debounceTimer: null,
       sortKey: 'title',
       sortDir: 'asc',
       columns: [
@@ -107,7 +108,17 @@ export default {
       if (this.apiUrl && this.autoFetch && !this.products) {
         this.fetchProducts();
       }
+    },
+    query() {
+      if (!this.apiUrl || this.products) return;
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = setTimeout(() => {
+        this.fetchProducts();
+      }, 500);
     }
+  },
+  beforeUnmount() {
+    clearTimeout(this.debounceTimer);
   },
   methods: {
     normalize(rawList) {
@@ -137,11 +148,16 @@ export default {
     },
     async fetchProducts() {
       if (!this.apiUrl) return;
+      const term = this.query.trim() || this.searchItem;
+      if (!term) {
+        this.items = [];
+        return;
+      }
       this.loading = true;
       this.error = null;
       try {
         const url = new URL(this.apiUrl, window.location.origin);
-        if (this.searchItem) url.searchParams.set('item', this.searchItem);
+        url.searchParams.set('item', term);
         if (this.category) url.searchParams.set('category', this.category);
 
         const res = await fetch(url.toString(), this.fetchOptions);
@@ -183,7 +199,8 @@ export default {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
-          <input v-model="query" type="text" placeholder="Search products..." />
+          <input v-model="query" type="text" placeholder="Search for a product…" />
+          <span v-if="loading" class="search-spinner">Searching…</span>
         </div>
         <button v-if="apiUrl" class="refresh-btn" @click="fetchProducts" :disabled="loading">
           {{ loading ? 'Loading…' : 'Refresh' }}
@@ -225,7 +242,9 @@ export default {
             </td>
           </tr>
           <tr v-if="filtered.length === 0">
-            <td colspan="5" class="empty">No products match "{{ query }}".</td>
+            <td colspan="5" class="empty">
+              {{ query.trim() ? `No products match "${query}".` : 'Type in the search box to find a product.' }}
+            </td>
           </tr>
         </tbody>
       </table>
@@ -307,6 +326,16 @@ export default {
   top: 50%;
   transform: translateY(-50%);
   opacity: 0.5;
+}
+
+.search-spinner {
+  position: absolute;
+  right: -78px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: var(--ink-soft);
+  white-space: nowrap;
 }
 
 .refresh-btn {

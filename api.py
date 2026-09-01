@@ -71,6 +71,8 @@ def search():
       e.g. "recurve_limbs" (optional, defaults to "recurve_limbs")
     - site_list: which wordlist of sites to crawl, e.g. "archery_urls"
       (optional, defaults to "archery_urls")
+    - max_workers: how many sites to search concurrently (optional,
+      defaults to 8)
 
     Returns: { "products": [ {title, price, image, website, link}, ... ] }
     """
@@ -80,6 +82,12 @@ def search():
     # category used for matching (see backend.py's own test call at the
     # bottom, which passes these as two different find_wordlist() calls).
     site_list = request.args.get("site_list", "archery_urls").strip()
+    max_workers_raw = request.args.get("max_workers", "8").strip()
+
+    try:
+        max_workers = max(1, int(max_workers_raw))
+    except ValueError:
+        return jsonify({"error": "Query parameter 'max_workers' must be an integer."}), 400
 
     if not item:
         return jsonify({"error": "Query parameter 'item' is required."}), 400
@@ -96,7 +104,7 @@ def search():
 
     try:
         searcher = Search()
-        raw_results = searcher.search(category, sites, item)
+        raw_results = searcher.search(category, sites, item, max_workers=max_workers)
     except Exception as exc:
         return jsonify({"error": f"Search failed: {exc}"}), 500
 
