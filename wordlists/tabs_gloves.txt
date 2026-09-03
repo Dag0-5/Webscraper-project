@@ -1,0 +1,5 @@
+tab
+glove
+finger
+leather
+shooting

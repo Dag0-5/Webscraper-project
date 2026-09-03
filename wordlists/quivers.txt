@@ -1,0 +1,5 @@
+quiver
+hip
+back
+pocket
+belt

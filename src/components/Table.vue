@@ -16,10 +16,30 @@ export default {
       default: ''
     },
     // Which wordlist/site category to search, e.g. "recurve_limbs".
-    // Sent to the API as ?category=...
+    // Sent to the API as ?category=... Acts as the initial value for the
+    // category dropdown; use v-model:category on the parent if you want
+    // to control it there instead.
     category: {
       type: String,
       default: 'recurve_limbs'
+    },
+    // Options shown in the category dropdown. Each 'value' should match
+    // a wordlist category your backend's find_wordlist() understands.
+    categories: {
+      type: Array,
+      default: () => ([
+        { value: 'recurve_limbs', label: 'Recurve Limbs' },
+        { value: 'recurve_risers', label: 'Recurve Risers' },
+        { value: 'compound_bows', label: 'Compound Bows' },
+        { value: 'arrows', label: 'Arrows' },
+        { value: 'bow_strings', label: 'Bow Strings' },
+        { value: 'sights', label: 'Sights' },
+        { value: 'stabilizers', label: 'Stabilizers' },
+        { value: 'quivers', label: 'Quivers' },
+        { value: 'arrow_rests', label: 'Arrow Rests' },
+        { value: 'tabs_gloves', label: 'Tabs & Gloves' },
+        { value: 'armguards', label: 'Armguards' },
+      ])
     },
     // Optional: pass products directly instead of (or in addition to) fetching.
     // Useful for SSR, tests, or when the parent already has the data.
@@ -38,6 +58,7 @@ export default {
       default: true
     }
   },
+  emits: ['update:category'],
   data() {
     return {
       items: [],
@@ -45,6 +66,7 @@ export default {
       error: null,
       query: '',
       debounceTimer: null,
+      selectedCategory: this.category,
       sortKey: 'title',
       sortDir: 'asc',
       columns: [
@@ -104,7 +126,15 @@ export default {
         this.fetchProducts();
       }
     },
-    category() {
+    category(newVal) {
+      // Parent changed the prop (e.g. via v-model:category) — keep the
+      // dropdown in sync without re-triggering itself in a loop.
+      if (newVal !== this.selectedCategory) {
+        this.selectedCategory = newVal;
+      }
+    },
+    selectedCategory(newVal) {
+      this.$emit('update:category', newVal);
       if (this.apiUrl && this.autoFetch && !this.products) {
         this.fetchProducts();
       }
@@ -158,7 +188,7 @@ export default {
       try {
         const url = new URL(this.apiUrl, window.location.origin);
         url.searchParams.set('item', term);
-        if (this.category) url.searchParams.set('category', this.category);
+        if (this.selectedCategory) url.searchParams.set('category', this.selectedCategory);
 
         const res = await fetch(url.toString(), this.fetchOptions);
         if (!res.ok) {
@@ -195,6 +225,11 @@ export default {
         <p v-if="!loading && !error">{{ filtered.length }} of {{ items.length }} products shown</p>
       </div>
       <div class="head-actions">
+        <select v-model="selectedCategory" class="category-select" aria-label="Product category">
+          <option v-for="opt in categories" :key="opt.value" :value="opt.value">
+            {{ opt.label }}
+          </option>
+        </select>
         <div class="search-box">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
@@ -298,6 +333,22 @@ export default {
   display: flex;
   gap: 10px;
   align-items: center;
+}
+
+.category-select {
+  font-family: var(--font-body);
+  font-size: 14px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.category-select:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 
 .search-box {

@@ -30,7 +30,7 @@ class Search():
         # and item are read-only for the duration of the search, so it's
         # safe to share them across threads.
         #
-
+        print(category)
         self.wordlist = find_wordlist(category)
         self.item     = item
 
@@ -372,7 +372,7 @@ class Search():
 if __name__ == "__main__":
     start = time.time()
     test = Search()
-    results = test.search("recurve_limbs",find_wordlist("archery_urls"),"Shocq Triumph Recurve Limbs")
+    results = test.search("sights",find_wordlist("archery_urls"),"Shibuya Dual Click")
     end = time.time()
     print(results)
     print("Time taken = ", end-start)
