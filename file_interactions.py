@@ -61,7 +61,7 @@ def check_from_word_list(wordlist,search_list,single,high_value_phrase=None,posi
     
                     if(len(matches)>0):
     
-                        value += -100*(len(matches)/len(words))
+                        value += -200*(len(matches)/len(words))
                         heapq.heappush(return_list,(value,item))
 
         matches = list(set(re.findall(pattern,comparison)))

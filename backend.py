@@ -70,8 +70,6 @@ class Search():
             print(url,"SEARCH FAILED:",exc)
             result = (False,None)
 
-        print(result)
-
         return url,result
 
 
@@ -100,8 +98,9 @@ class Search():
                 result = self.sitemap_search(map)
 
                 if (not result[0] and result[1] != (0,None)):
-
-                    result = self.get_details(result[1],True,result[1][0],result[1][1])
+                        
+                    temp   = result[1][1]
+                    result = self.get_details(temp,True,temp[0],temp[1])
 
             else:
 
@@ -129,17 +128,14 @@ class Search():
         #TODO implement html error handling i.e. error 404
         
         time.sleep(self.crawl_delay)
-
         url_list = map.find_urls()
         url_list = self.remove_disallowed(url_list)
 
         if url_list != []:
 
             possible_matches = check_from_word_list(self.wordlist,url_list,False,self.item)
-            found,item       = self.check_matches(possible_matches,True)
+            found,item       = self.check_matches(list(possible_matches),True)
 
-            print(possible_matches)
-            
             if(found):
 
                 return True,item
@@ -197,10 +193,6 @@ class Search():
 
             page.find_soup()
 
-        print(page.url)
-        print(page.get_previous())
-        print(page.value)
-
         if(len(page.get_previous())>10):
 
            return False, pages.Page("")
@@ -246,7 +238,6 @@ class Search():
                 pair  = heapq.heappop(possible_matches)
                 child = pages.Page(pair[1],page,pair[0])
                 children.append(child)
-                print(f"CHILD : {child.url} --- VALUE : {child.value}")
 
             page.children = children
             found,item    = self.check_matches(list(page.children),False)
@@ -341,7 +332,7 @@ class Search():
     def get_details(self,match,sitemap_search,link,title):
 
         if(sitemap_search):
-    
+            
             page  = pages.Page(link)
             page.find_soup()
             price = page.find_price()
@@ -385,7 +376,7 @@ class Search():
 if __name__ == "__main__":
     start = time.time()
     test = Search()
-    results = test.search("recurve_sights",["https://www.merlinarchery.co.uk/"],"Shibuya Dual Click Recurve Sight")
+    results = test.search("recurve_sights",find_wordlist("archery_urls"),"Shibuya Dual Click Recurve Sight")
     end = time.time()
     print(results)
     print("Time taken = ", end-start)

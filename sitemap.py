@@ -14,13 +14,12 @@ class Sitemap:
 
     def find_urls(self):
         #finds all urls and there important info on the sitemap
-        
         session        = requests.session()
         sitemap        = session.get(self.map)
         soup           = BeautifulSoup(sitemap.text,"xml")
         urls           = list()
         urls_cluttered = soup.find_all("url")
-
+        
         for tag in urls_cluttered:
 
             link  = self.find_link(tag)
@@ -45,7 +44,16 @@ class Sitemap:
         for sitemap in sitemaps_cluttered:
 
             index = sitemap.text.index(".xml")
-            sitemaps.append(Sitemap(sitemap.text[:index+4],None,map))
+
+            if(sitemap.text[index+4]!="?"):
+
+                link = sitemap.text[:index+4].strip()
+
+            else:
+
+                link = sitemap.text.strip()
+
+            sitemaps.append(Sitemap(link,None,map))
 
         for sitemap in sitemaps:
 
