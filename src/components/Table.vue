@@ -81,12 +81,7 @@ export default {
   },
   computed: {
     filtered() {
-      const q = this.query.trim().toLowerCase();
-      let result = this.items.filter(p =>
-        !q ||
-        (p.title || '').toLowerCase().includes(q) ||
-        (p.website || '').toLowerCase().includes(q)
-      );
+      let result = this.items;
 
       if (this.sortKey) {
         result = [...result].sort((a, b) => {
@@ -145,7 +140,7 @@ export default {
       clearTimeout(this.debounceTimer);
       this.debounceTimer = setTimeout(() => {
         this.fetchProducts();
-      }, 500);
+      }, 1000);
     }
   },
   beforeUnmount() {
@@ -223,7 +218,7 @@ export default {
     <div class="table-head">
       <div>
         <h1>Product catalog</h1>
-        <p v-if="!loading && !error">{{ filtered.length }} of {{ items.length }} products shown</p>
+        <p v-if="!loading && !error">{{ items.length }} products found</p>
       </div>
       <div class="head-actions">
         <select v-model="selectedCategory" class="category-select" aria-label="Product category">
