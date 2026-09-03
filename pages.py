@@ -86,7 +86,7 @@ class Page():
 
             for char in non_digit:
 
-                if char != ".":
+                if char != "." and char != ",":
 
                     break
 
