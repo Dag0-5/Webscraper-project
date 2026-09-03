@@ -1,5 +1,0 @@
-sight
-pin
-scope
-aperture
-peep

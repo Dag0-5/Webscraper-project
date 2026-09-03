@@ -31,39 +31,7 @@ def file_reader(path):
 def check_from_word_list(wordlist,search_list,single,high_value_phrase=None,position=0):
 
     return_list = list()
-
-    if(high_value_phrase!=None):
-
-        words   = high_value_phrase.lower().split(" ")
-        words.sort()
-        pattern = re.compile('|'.join(re.escape(w) for w in words))
-
-        for item in list(search_list):
-            
-            if(single):
-
-                comparison = item.lower()
-
-            else:
-
-                comparison = item[position].lower()
-
-            matches = list(set(re.findall(pattern,comparison)))
-            matches.sort()
-            
-            if (len(matches)==len(words)):
-
-                return [(-1000,item)]
-
-            else:
-
-                if(len(matches)>0):
-
-                    value = -1000*(len(matches)/len(words))
-                    heapq.heappush(return_list,(value,item))
-                    search_list.remove(item)    
-    
-    pattern = re.compile('|'.join(re.escape(w) for w in wordlist))
+    pattern     = re.compile('|'.join(re.escape(w) for w in wordlist))
 
     for item in search_list:
 
@@ -71,19 +39,37 @@ def check_from_word_list(wordlist,search_list,single,high_value_phrase=None,posi
 
         if(single):
     
-            temp = item.lower()
+            comparison = item.lower()
 
         else:
 
-          temp = item[position].lower()
+            comparison = item[position].lower()
 
+        if(high_value_phrase!=None):
+        
+                words   = high_value_phrase.lower().split(" ")
+                words.sort()
+                high_pattern = re.compile('|'.join(re.escape(w) for w in words))
+                matches = list(set(re.findall(high_pattern,comparison)))
+                matches.sort()
+                
+                if (len(matches)==len(words)):
+    
+                    return [(-1000,item)]
+    
+                else:
+    
+                    if(len(matches)>0):
+    
+                        value += -100*(len(matches)/len(words))
+                        heapq.heappush(return_list,(value,item))
 
-        matches = list(set(re.findall(pattern,temp)))
+        matches = list(set(re.findall(pattern,comparison)))
         matches.sort()
 
         if(len(matches)>0):
             
-            value = -100*(len(matches)/len(wordlist))
+            value += -100*(len(matches)/len(wordlist))
             heapq.heappush(return_list,(value,item))
 
     return return_list
@@ -104,6 +90,8 @@ def export(collection):
     for item in collection:
 
             site = item[0]
+
+            print(item)
 
             if (item[1]==(False, (0,None))):
 

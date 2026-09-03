@@ -70,6 +70,8 @@ class Search():
             print(url,"SEARCH FAILED:",exc)
             result = (False,None)
 
+        print(result)
+
         return url,result
 
 
@@ -92,13 +94,14 @@ class Search():
             self.allow,self.disallow = robots.find_allow_disallow_list(robot)
 
             if(map != None):
+
                 map    = sitemap.Sitemap(map)
                 map.find_sitemaps()
                 result = self.sitemap_search(map)
 
                 if (not result[0] and result[1] != (0,None)):
 
-                    result = (False,self.get_details(result[1],True,result[1][0],result[1][1]))
+                    result = self.get_details(result[1],True,result[1][0],result[1][1])
 
             else:
 
@@ -108,7 +111,7 @@ class Search():
 
                 if (not result[0] and result[1].url != ""):
 
-                    result = (False,self.get_details(result[1],False,result[1].url,result[1].find_title()))
+                    result = self.get_details(result[1],False,result[1].url,result[1].find_title())
 
         end = time.time()
         print(f"{url} SEARCH COMPLETED") 
@@ -134,6 +137,8 @@ class Search():
 
             possible_matches = check_from_word_list(self.wordlist,url_list,False,self.item)
             found,item       = self.check_matches(possible_matches,True)
+
+            print(possible_matches)
             
             if(found):
 
@@ -192,6 +197,10 @@ class Search():
 
             page.find_soup()
 
+        print(page.url)
+        print(page.get_previous())
+        print(page.value)
+
         if(len(page.get_previous())>10):
 
            return False, pages.Page("")
@@ -237,10 +246,12 @@ class Search():
                 pair  = heapq.heappop(possible_matches)
                 child = pages.Page(pair[1],page,pair[0])
                 children.append(child)
+                print(f"CHILD : {child.url} --- VALUE : {child.value}")
 
             page.children = children
             found,item    = self.check_matches(list(page.children),False)
 
+            
             if(found):
 
                 return True,item
@@ -261,17 +272,19 @@ class Search():
 
                 for child in page.children:
 
-                    found,item = self.no_sitemap_search(child)
+                    if(child.value<=best_fit.value):
+                    
+                        found,item = self.no_sitemap_search(child)
 
-                    if(found):
+                        if(found):
 
-                        return found,item
+                            return found,item
 
-                    else:
+                        else:
 
-                        if item.value < best_fit.value:
+                            if item.value < best_fit.value:
 
-                            best_fit = item
+                                best_fit = item
 
                 return False,best_fit 
 
@@ -372,7 +385,7 @@ class Search():
 if __name__ == "__main__":
     start = time.time()
     test = Search()
-    results = test.search("sights",find_wordlist("archery_urls"),"Shibuya Dual Click")
+    results = test.search("recurve_sights",["https://www.merlinarchery.co.uk/"],"Shibuya Dual Click Recurve Sight")
     end = time.time()
     print(results)
     print("Time taken = ", end-start)

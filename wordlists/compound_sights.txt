@@ -1,0 +1,5 @@
+sight
+compound
+pin
+fiber
+bubble
