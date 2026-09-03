@@ -324,7 +324,7 @@ class Search():
                     if(image == None or price == None):
                         return True,None
 
-                return True, (link,title,image,price)
+                return True, (link,title.capitalize(),image,price)
 
         return False, None
 
@@ -347,7 +347,7 @@ class Search():
             if(image == None or price == None):
                 return True,None
 
-        return True, (link,title,image,price)
+        return True, (link,title.capitalize(),image,price)
 
 
     def remove_disallowed(self,url_list,single=False):
